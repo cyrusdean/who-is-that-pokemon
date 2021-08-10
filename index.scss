@@ -1,0 +1,112 @@
+@font-face {
+  font-family: Pokemon;
+  src: url(fonts/Pokemon-Solid.ttf);
+}
+
+body {
+  margin: 0;
+  color: #f24036;
+  min-height: 100vh;
+  margin-top: 30px;
+  background: linear-gradient(to top right, #2f456c, #1a82f7);
+
+  #gameContainer {
+    font-family: Pokemon;
+    letter-spacing: 5px;
+    text-align: center;
+
+    #gameFlex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin: 30px;
+
+      .score-counter {
+        min-width: 20%;
+        font-size: 30px;
+
+        .count {
+          color: #ffcb01;
+        }
+      }
+    }
+    #whoIsThatPokemonBanner {
+      width: 50%;
+      position: relative;
+
+      img {
+        &:first-of-type {
+          width: 100%;
+          border-radius: 20px;
+        }
+        &:nth-of-type(2) {
+          width: auto;
+          height: auto;
+
+          max-width: 30%;
+          max-height: 50%;
+          position: absolute;
+          top: 50%;
+          left: 25%;
+          transform: translate(-25%, -50%);
+        }
+      }
+    }
+    #answer {
+      font-size: 30px;
+      font-weight: bold;
+    }
+    button {
+      background-color: #2974ba;
+      border: 0;
+      color: #ffcb01;
+      font-size: 30px;
+      font-weight: bold;
+      padding: 10px;
+      text-transform: uppercase;
+      display: none;
+      margin: 20px auto;
+      font-family: Pokemon;
+      letter-spacing: 5px;
+    }
+    h1 {
+      display: none;
+    }
+    ul#guessingOptions {
+      display: none;
+      padding: 0;
+      margin: 0 auto;
+      width: min-content;
+
+      li {
+        list-style: none;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 5px solid #2974ba;
+        max-width: 200px;
+        color: #ffcb01;
+      }
+    }
+
+    &.ready {
+      button {
+        display: block;
+      }
+    }
+    &.viewing {
+    }
+    &.viewing,
+    &.guessing {
+      img:nth-of-type(2) {
+        filter: brightness(0);
+      }
+    }
+    &.guessing {
+      h1,
+      #guessingOptions {
+        display: block;
+      }
+    }
+  }
+}
