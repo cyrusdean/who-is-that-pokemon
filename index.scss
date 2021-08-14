@@ -8,8 +8,21 @@ body {
   color: #f24036;
   min-height: 100vh;
   margin-top: 30px;
-  background: linear-gradient(to top right, #2f456c, #1a82f7);
+  background-image: url("./images/poke-ball.png");
+  background-size: 200px;
+  background-color: #2f456c;
+  background-repeat: repeat;
 
+  #background-mask {
+    background: linear-gradient(to top right, #2f456c, #1a82f7);
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    opacity: 0.9;
+    z-index: -1;
+  }
   #gameContainer {
     font-family: Pokemon;
     letter-spacing: 5px;
@@ -24,7 +37,7 @@ body {
 
       .score-counter {
         min-width: 20%;
-        font-size: 30px;
+        font-size: 35px;
 
         .count {
           color: #ffcb01;
@@ -54,14 +67,14 @@ body {
       }
     }
     #answer {
-      font-size: 30px;
+      font-size: 35px;
       font-weight: bold;
     }
     button {
       background-color: transparent;
       border: 5px solid #2974ba;
       color: #ffcb01;
-      font-size: 30px;
+      font-size: 35px;
       font-weight: bold;
       padding: 10px;
       text-transform: uppercase;
