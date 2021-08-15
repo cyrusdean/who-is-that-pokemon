@@ -7,7 +7,7 @@ const utils = {
         correctGuesses: 0,
         incorrectGuesses: 0
     },
-    randomIndex: (arr) => Math.floor(Math.random() * arr.length)
+    randomNumUpTo: (max) => Math.floor(Math.random() * (max + 1))
 }
 
 const pokemonApp = {
@@ -74,7 +74,7 @@ const pokemonApp = {
         this.clearHTML()
         this.updateStatus('viewing')
 
-        const selectedPokemonIndex = utils.randomIndex(this.state.pokemon)
+        const selectedPokemonIndex = utils.randomNumUpTo(this.state.pokemon.length - 1)
         this.state.selectedPokemonIndex = selectedPokemonIndex
         const selectedPokemon = this.state.pokemon[selectedPokemonIndex]
         console.log(selectedPokemon)
@@ -86,20 +86,17 @@ const pokemonApp = {
         whoIsThatPokemonBannerEl.appendChild(pokemonImage)
 
         this.beginGuessing()
-
     },
     beginGuessing: function () {
         console.log(this)
         this.updateStatus('guessing')
         const { pokemon, selectedPokemonIndex } = this.state
-        const { randomIndex } = utils
-        let guessingOptionIndexes = [...Array(3)].map(() => randomIndex(pokemon))
+        const { randomNumUpTo } = utils
+        const pokemonIndexMax = pokemon.length - 1
+        const numOfOtherOptions = 3
+        let guessingOptionIndexes = [...Array(numOfOtherOptions)].map(() => randomNumUpTo(pokemonIndexMax))
         console.log(guessingOptionIndexes)
-
-        if (!guessingOptionIndexes.includes(selectedPokemonIndex))
-            guessingOptionIndexes.splice(randomIndex(guessingOptionIndexes), 0, selectedPokemonIndex)
-        else guessingOptionIndexes.push(randomIndex(pokemon))
-        console.log(guessingOptionIndexes)
+        guessingOptionIndexes.splice(randomNumUpTo(numOfOtherOptions), 0, selectedPokemonIndex)
 
         const timeoutToEndGame = setTimeout(this.finishGame.bind(this), 3000)
 
