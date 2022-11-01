@@ -4,21 +4,29 @@
     <meta charset="utf-8" />
     <title>Who's that Pokemon?</title>
     <link rel="stylesheet" href="./index.scss" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue"
+    />
   </head>
   <body>
-    <div id="background-mask"></div>
     <div id="gameContainer" class="ready">
       <div id="gameFlex">
-        <div class="score-counter">Correct: <span class="count">0</span></div>
-        <div id="whoIsThatPokemonBanner">
-          <img src="images/who-is-that-pokemon-bg.png" />
+        <div class="score-counter">
+          Correct: <br /><span class="count">0</span>
         </div>
-        <div class="score-counter">Incorrect: <span class="count">0</span></div>
+        <div id="whoIsThatPokemonBanner">
+          <img src="images/who-is-that-pokemon-bg.jpg" />
+        </div>
+
+        <div class="score-counter">
+          Incorrect: <br /><span class="count">0</span>
+        </div>
       </div>
 
       <div id="answer"></div>
 
-      <button id="startGameButton">Play Game</button>
+      <button id="startGameButton">Play</button>
 
       <h1>Who is that pokemon?</h1>
       <ul id="guessingOptions"></ul>
