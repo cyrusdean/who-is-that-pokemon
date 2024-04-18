@@ -1,161 +1,191 @@
-const utils = {
-    initialState: {
-        pokemon: [],
-        selectedPokemonIndex: null,
-        guessedPokemonIndex: null,
-        status: 'ready',
-        correctGuesses: 0,
-        incorrectGuesses: 0
-    },
-    randomNumUpTo: (max) => Math.floor(Math.random() * (max + 1))
-}
+const initialState = {
+  generations: {},
+  selectedGenerations: [],
+  pokemon: [],
+  selectedPokemon: null,
+  guessedPokemon: null,
+  status: "ready",
+  correctGuessesStreak: 0,
+  gameTimeout: null,
+};
 
-const pokemonApp = {
-    state: { ...utils.initialState },
-    /*
-          In the regular function, a function always defines its this value. 
-          Arrow functions treat this keyword differently. They don’t define their 
-          own context since it doesn’t have its own this context. They inherit 
-          that from the parent scope whenever you call this.
-   
-          init: () => {
-              console.log(this) // -> {}
-          }
-      */
-    init: async function () {
-        console.log(this);
-        this.updateStatus('ready')
+let state = { ...initialState };
 
-        const pokemonCount = 368;
-        const pokemonAPIResponse = await fetch(
-            `https://pokeapi.co/api/v2/pokemon?limit=${pokemonCount}`
-        )
-            .then((res) => res.json())
-            .catch((error) => {
-                console.log(error);
-            });
-        console.log(pokemonAPIResponse);
+const randomNumUpTo = (max) => Math.floor(Math.random() * (max + 1));
 
-        let { results: pokemon } = pokemonAPIResponse;
-        pokemon = pokemon.map(({ name }, i) => {
-            const capitalizedPokemonName =
-                name.charAt(0).toUpperCase() + name.slice(1);
-            const avatarUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${i + 1
-                }.svg`
-            return {
-                name: capitalizedPokemonName,
-                avatarUrl,
-            };
-        });
-        console.log(pokemon);
+const updateGameStatus = (status) => {
+  state.status = status;
+  const gameContainer = document.getElementById("gameContainer");
+  gameContainer.className = status;
+};
+const resetHTML = () => {
+  const guessingOptionsEl = document.getElementById("guessingOptions");
+  guessingOptionsEl.innerHTML = "";
 
-        this.state.pokemon = pokemon;
+  const answerEl = document.getElementById("answer");
+  answerEl.innerText = "";
 
-        console.log(this);
+  const pokemonImage = document.querySelector(".pokemon-image");
+  if (pokemonImage) pokemonImage.remove();
+};
+const finishGame = () => {
+  const { selectedPokemon, guessedPokemon } = state;
+  const didNotGuess = !guessedPokemon;
+  const guessedCorrectly =
+    selectedPokemon?.id === guessedPokemon?.id && !didNotGuess;
+  const { name } = selectedPokemon;
 
-        const startGameButtonEl = document.getElementById("startGameButton");
-        startGameButtonEl.addEventListener('click', this.startGame.bind(this))
+  const answerEl = document.getElementById("answer");
+  answerEl.innerText = `It's ${name}!`;
 
-        console.log(startGameButtonEl);
-    },
-    clearHTML: function () {
-        const guessingOptionsEl = document.getElementById('guessingOptions')
-        guessingOptionsEl.innerHTML = ''
+  const correctGuessesStreakEl = document.getElementById("streakCount");
+  if (guessedCorrectly) state.correctGuessesStreak++;
+  else state.correctGuessesStreak = 0;
 
-        const answerEl = document.getElementById('answer')
-        answerEl.innerText = ''
+  correctGuessesStreakEl.innerText = state.correctGuessesStreak;
 
-        const whoIsThatPokemonBannerEl = document.getElementById('whoIsThatPokemonBanner')
-        if (whoIsThatPokemonBannerEl.querySelectorAll('img').length > 1)
-            whoIsThatPokemonBannerEl.removeChild(whoIsThatPokemonBannerEl.lastChild)
-    },
-    startGame: function () {
-        console.log(this)
-        this.clearHTML()
-        this.updateStatus('viewing')
+  const {
+    generations,
+    selectedGenerations,
+    pokemon: initialPokemon,
+    correctGuessesStreak,
+    ...restInitialState
+  } = initialState;
+  state = {
+    ...state,
+    ...restInitialState,
+  };
+  updateGameStatus("viewing-result");
+  state.gameTimeout = setTimeout(startGame, 3000);
+};
+const beginGuessing = () => {
+  updateGameStatus("guessing");
+  const { pokemon, selectedPokemon } = state;
+  const pokemonIndexMax = pokemon.length - 1;
+  const numOfOtherOptions = 3;
+  let guessingOptions = [...Array(numOfOtherOptions)].map(
+    () => pokemon[randomNumUpTo(pokemonIndexMax)]
+  );
+  guessingOptions.splice(randomNumUpTo(numOfOtherOptions), 0, selectedPokemon);
 
-        const selectedPokemonIndex = utils.randomNumUpTo(this.state.pokemon.length - 1)
-        this.state.selectedPokemonIndex = selectedPokemonIndex
-        const selectedPokemon = this.state.pokemon[selectedPokemonIndex]
-        console.log(selectedPokemon)
-        const { avatarUrl } = selectedPokemon
+  const gameTimeout = setTimeout(finishGame, 3000);
+  state.gameTimeout = gameTimeout;
 
-        const whoIsThatPokemonBannerEl = document.getElementById('whoIsThatPokemonBanner')
-        const pokemonImage = document.createElement('img');
-        pokemonImage.src = avatarUrl
-        whoIsThatPokemonBannerEl.appendChild(pokemonImage)
+  const guessingOptionsEl = document.getElementById("guessingOptions");
+  guessingOptions.forEach((pokemonOption) => {
+    const { name } = pokemonOption;
 
-        this.beginGuessing()
-    },
-    beginGuessing: function () {
-        console.log(this)
-        this.updateStatus('guessing')
-        const { pokemon, selectedPokemonIndex } = this.state
-        const { randomNumUpTo } = utils
-        const pokemonIndexMax = pokemon.length - 1
-        const numOfOtherOptions = 3
-        let guessingOptionIndexes = [...Array(numOfOtherOptions)].map(() => randomNumUpTo(pokemonIndexMax))
-        console.log(guessingOptionIndexes)
-        guessingOptionIndexes.splice(randomNumUpTo(numOfOtherOptions), 0, selectedPokemonIndex)
+    const pokemonOptionEl = document.createElement("li");
+    pokemonOptionEl.innerText = name;
+    pokemonOptionEl.addEventListener("click", () => {
+      clearTimeout(gameTimeout);
+      state.guessedPokemon = pokemonOption;
+      finishGame();
+    });
 
-        const timeoutToEndGame = setTimeout(this.finishGame.bind(this), 3000)
+    guessingOptionsEl.appendChild(pokemonOptionEl);
+  });
+};
+const setupRandomPokemon = () => {
+  const selectedPokemon =
+    state.pokemon[randomNumUpTo(state.pokemon.length - 1)];
+  state.selectedPokemon = selectedPokemon;
+  const { avatarUrl } = selectedPokemon;
 
-        const guessingOptionsEl = document.getElementById('guessingOptions')
-        guessingOptionIndexes.forEach(guessingOptionIndex => {
-            const pokemonOption = pokemon[guessingOptionIndex]
-            const { name } = pokemonOption
-
-            const pokemonOptionEl = document.createElement('li');
-            pokemonOptionEl.innerText = name
-            pokemonOptionEl.addEventListener('click', (event) => {
-                clearTimeout(timeoutToEndGame)
-                const { target } = event;
-                const targetPokemon = target.innerText
-                console.log(targetPokemon)
-                this.state.guessedPokemonIndex = guessingOptionIndex
-                this.finishGame()
-            })
-
-            guessingOptionsEl.appendChild(pokemonOptionEl)
-        })
-
-
-    },
-    finishGame: function () {
-        console.log(this)
-        const { selectedPokemonIndex, guessedPokemonIndex, pokemon } = this.state
-        const didNotGuess = guessedPokemonIndex === null
-        const guessedCorrectly = selectedPokemonIndex === guessedPokemonIndex && !didNotGuess
-        let textResult = guessedCorrectly ? 'Yep' : 'Nope'
-        textResult = didNotGuess ? 'Oops' : textResult
-        const selectedPokemon = pokemon[selectedPokemonIndex]
-        console.log(selectedPokemon)
-        const { name } = selectedPokemon
-
-        const answerEl = document.getElementById('answer')
-        answerEl.innerText = `${textResult}! It's ${name}!`
-
-        const [correctGuessesEl, incorrectGuessesEl] = document.querySelectorAll('.count')
-        if (guessedCorrectly) {
-            this.state.correctGuesses++
-            correctGuessesEl.innerText = this.state.correctGuesses
-        } else {
-            this.state.incorrectGuesses++
-            incorrectGuessesEl.innerText = this.state.incorrectGuesses
-        }
-
-        const { pokemon: initialPokemon, correctGuesses, incorrectGuesses, ...restInitialState } = utils.initialState
-        this.state = { ...this.state, ...restInitialState }
-        console.log(utils.initialState)
-        console.log('this', this)
-        this.updateStatus('ready')
-    },
-    updateStatus: function (status) {
-        this.state.status = status
-        const gameContainer = document.getElementById('gameContainer')
-        gameContainer.classList = [status]
+  const pokemonBoxEl = document.getElementById("pokemonBox");
+  const pokemonImage = document.createElement("img");
+  pokemonImage.src = avatarUrl;
+  pokemonImage.className = "pokemon-image";
+  pokemonBoxEl.appendChild(pokemonImage);
+};
+const startGame = () => {
+  resetHTML();
+  setupRandomPokemon();
+  beginGuessing();
+};
+const init = async () => {
+  const pokemonAPIResponse = await fetch(
+    "https://beta.pokeapi.co/graphql/v1beta",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        query: `
+          query samplePokeAPIquery {
+              generations: pokemon_v2_generation {
+              name
+              pokemon_species: pokemon_v2_pokemonspecies {
+                id
+                name
+              }
+            }
+          }`,
+      }),
     }
+  )
+    .then((res) => res.json())
+    .catch((error) => {
+      console.log(error);
+    });
+  const {
+    data: { generations },
+  } = pokemonAPIResponse;
+  state.generations = generations.reduce(
+    (a, { name, pokemon_species: pokemon }) => ({
+      ...a,
+      [name]: pokemon.map(({ name, id }) => {
+        const avatarUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+        return {
+          id,
+          name,
+          avatarUrl,
+        };
+      }),
+    }),
+    {}
+  );
+  const generationNames = Object.keys(state.generations);
+  state.selectedGenerations = [generationNames[0]];
+
+  let pokemon = [].concat(
+    ...state.selectedGenerations.map(
+      (selectedGeneration) => state.generations[selectedGeneration]
+    )
+  );
+
+  state.pokemon = pokemon;
+
+  const generationOptionsEl = document.getElementById("generationOptions");
+  generationNames.forEach((generationName, i) => {
+    const generationOptionEl = document.createElement("li");
+    generationOptionEl.innerText = generationName.split("-")[1];
+    if (i === 0) generationOptionEl.className = "active";
+
+    generationOptionEl.addEventListener("click", (e) => {
+      const isRemoving = state.selectedGenerations.includes(generationName);
+      if (state.selectedGenerations.length < 2 && isRemoving) return;
+      e.target.classList.toggle("active");
+      state.selectedGenerations = isRemoving
+        ? state.selectedGenerations.filter(
+            (selectedGeneration) => selectedGeneration !== generationName
+          )
+        : [...state.selectedGenerations, generationName];
+      state.pokemon = [].concat(
+        ...state.selectedGenerations.map(
+          (generationName) => state.generations[generationName]
+        )
+      );
+      clearTimeout(state.gameTimeout);
+      startGame();
+    });
+
+    generationOptionsEl.appendChild(generationOptionEl);
+  });
+
+  const startGameButtonEl = document.getElementById("startGameButton");
+  startGameButtonEl.addEventListener("click", startGame);
+
+  updateGameStatus("ready");
 };
 
 // Call our initialization of the application
-pokemonApp.init();
+init();
